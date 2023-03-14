@@ -4,6 +4,8 @@ Small bash file that implements https://www.lofiatc.com with two running [mpv](h
 
 Because of LiveATC's [Terms of Service](https://www.liveatc.net/legal/), the links to their streams have been replaced by freely available YouTube videos.
 
+Support for [Broadcastify's top feeds](https://www.broadcastify.com/listen/top) has been added if you want to listen to live feeds.
+
 ```
 $ ./lofiatc.sh 
 Playing: KLAX - Los Angeles International Airport
@@ -22,3 +24,4 @@ git clone https://github.com/phazus/lofiatc.sh.git
 cd lofiatc.sh
 ./lofiatc.sh
 ```
+

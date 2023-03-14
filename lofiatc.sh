@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ICAO_CODES=icao.txt
+BROADCASTIFY=broadcastify.txt
 LOFI_YT=lofiyt.m3u
 LOFI_MP3=lofimp3.m3u
 
@@ -28,6 +29,24 @@ function updateinfo()
         | perl -MURI::Escape -wlne 'print uri_escape $_' \
         | sed -e 's/\(.*\)/https:\/\/www.lofiatc.com\/assets\/music\/\1.mp3/' \
         > $LOFI_MP3
+    echo "DONE" >&2
+
+    # get top broadcastify streams
+    echo "Broadcastify top streams" >&2
+    curl https://www.broadcastify.com/listen/top 2>/dev/null \
+        | awk '/stid/{c=4};c&&((c-- == 4) || (c==0))' \
+        > prefilter
+
+    grep -o 'stid/[0-9]\+">[A-Z>]\+' prefilter \
+        | sed -e 's/[^A-Z]\+//' \
+        > stids
+
+    sed -ne 's/.*\/listen\/feed\/\([0-9]\+">[^<]\+\).*/http:\/\/broadcastify.cdnstream1.com\/\1/p' prefilter \
+        | sed -e 's/\(.*\)">\(.*\)/\2;\1/' \
+        > feeds
+
+    paste -d ";" stids feeds > $BROADCASTIFY
+    rm prefilter stids feeds
     echo "DONE" >&2
 
     # respect liveact's toc:
@@ -61,14 +80,19 @@ function updateinfo()
 
 [[ "${1:-}" == "update" ]] && updateinfo
 
-# play random ATC stream
-ICAO_ENTRY=$(sort --random-sort $ICAO_CODES | head -1)
-ICAO_CODE=$(echo $ICAO_ENTRY | cut -d ";" -f1)
-ICAO_NAME=$(echo $ICAO_ENTRY | cut -d ";" -f2)
-ICAO_FEED=$(echo $ICAO_ENTRY | cut -d ";" -f3)
-echo "Playing: $ICAO_CODE - $ICAO_NAME" >&2
-echo $ICAO_FEED >&2
-mpv --no-video --loop "$ICAO_FEED" &>/dev/null &
+# play random stream
+STREAM_FILE=$ICAO_CODES
+
+# uncomment if broadcastify streams shall be used
+# STREAM_FILE=$BROADCASTIFY
+
+STREAM_ENTRY=$(sort --random-sort $STREAM_FILE | head -1)
+STREAM_CODE=$(echo $STREAM_ENTRY | cut -d ";" -f1)
+STREAM_NAME=$(echo $STREAM_ENTRY | cut -d ";" -f2)
+STREAM_FEED=$(echo $STREAM_ENTRY | cut -d ";" -f3)
+echo "Playing: $STREAM_CODE - $STREAM_NAME" >&2
+echo $STREAM_FEED >&2
+mpv --no-video --loop "$STREAM_FEED" &>/dev/null &
 
 # lofi playlist
 # in case yt videos shall be used for playback:
