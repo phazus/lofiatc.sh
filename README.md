@@ -2,10 +2,12 @@
 
 Small bash file that implements https://www.lofiatc.com with two running [mpv](https://mpv.io/) instances.
 
+Because of LiveATC's [Terms of Service](https://www.liveatc.net/legal/), the links to their streams have been replaced by freely available YouTube videos.
+
 ```
 $ ./lofiatc.sh 
-Playing: KPHX - Phoenix Sky Harbor International Airport
-https://www.liveatc.net/hlisten.php?mount=kphx_twr_both&icao=kphx
+Playing: KLAX - Los Angeles International Airport
+https://www.youtube.com/watch?v=Q9zwUZr6yPA
 
 Playing: https://www.youtube.com/watch?v=5V2nGGbUE6c
  (+) Audio --aid=1 --alang=eng (*) (opus 2ch 48000Hz)

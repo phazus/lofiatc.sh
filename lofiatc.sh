@@ -31,29 +31,32 @@ function updateinfo()
         > $LOFI_MP3
     echo "DONE" >&2
 
+    # respect liveact's toc:
+    # https://www.liveatc.net/legal/
+    
     # get all icao codes
-    echo "ICAO codes" >&2
-    ICAO_CODES_TEMP=$(mktemp)
-    for c in {a..z} ; do
-        echo "$c" >&2
-        curl 'https://www.lofiatc.com/autocomplete/'$c'?icao=KAPA:1' 2>/dev/null \
-            | jq --raw-output '.codes[]' \
-            >> $ICAO_CODES_TEMP
-    done
+    # echo "ICAO codes" >&2
+    # ICAO_CODES_TEMP=$(mktemp)
+    # for c in {a..z} ; do
+    #     echo "$c" >&2
+    #     curl 'https://www.lofiatc.com/autocomplete/'$c'?icao=KAPA:1' 2>/dev/null \
+    #         | jq --raw-output '.codes[]' \
+    #         >> $ICAO_CODES_TEMP
+    # done
 
-    echo "ICAO links" >&2
-    rm -f $ICAO_CODES
-    for c in $(sort $ICAO_CODES_TEMP | uniq) ; do
-        echo $c >&2
-        ICAO_INFO=$(curl "https://www.lofiatc.com/airport/$c" 2>/dev/null)
-        ICAO_CODE=$(echo $ICAO_INFO | jq --raw-output '.icao')
-        ICAO_NAME=$(echo $ICAO_INFO | jq --raw-output '.name')
-        ICAO_FEED=$(echo $ICAO_INFO | jq --raw-output '.feedUrl')
-        echo "$ICAO_CODE;$ICAO_NAME;$ICAO_FEED" >> $ICAO_CODES
-    done
-    rm -f $ICAO_CODES_TEMP
+    # echo "ICAO links" >&2
+    # rm -f $ICAO_CODES
+    # for c in $(sort $ICAO_CODES_TEMP | uniq) ; do
+    #     echo $c >&2
+    #     ICAO_INFO=$(curl "https://www.lofiatc.com/airport/$c" 2>/dev/null)
+    #     ICAO_CODE=$(echo $ICAO_INFO | jq --raw-output '.icao')
+    #     ICAO_NAME=$(echo $ICAO_INFO | jq --raw-output '.name')
+    #     ICAO_FEED=$(echo $ICAO_INFO | jq --raw-output '.feedUrl')
+    #     echo "$ICAO_CODE;$ICAO_NAME;$ICAO_FEED" >> $ICAO_CODES
+    # done
+    # rm -f $ICAO_CODES_TEMP
 
-    echo "DONE" >&2
+    # echo "DONE" >&2
 }
 
 
@@ -66,7 +69,7 @@ ICAO_NAME=$(echo $ICAO_ENTRY | cut -d ";" -f2)
 ICAO_FEED=$(echo $ICAO_ENTRY | cut -d ";" -f3)
 echo "Playing: $ICAO_CODE - $ICAO_NAME" >&2
 echo $ICAO_FEED >&2
-mpv "$ICAO_FEED" &>/dev/null &
+mpv --no-video --loop "$ICAO_FEED" &>/dev/null &
 
 # lofi playlist
 # in case yt videos shall be used for playback:
