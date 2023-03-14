@@ -23,10 +23,9 @@ function updateinfo()
     # get mp3s as stored on lofiatc.com
     echo "mp3 URIs" >&2
     echo -e $(curl "$CHUNK_URL" 2>/dev/null) \
-        | grep -o 'name:"\([^"]\)\+",youtube' \
-        | sed -ne 's/name:"\([^"]\+\)",youtube/\1/pg' \
+        | grep -o 'name:"[^"]\+",youtube' \
+        | sed -e 's/name:"\([^"]\+\)",youtube/\1/' \
         | perl -MURI::Escape -wlne 'print uri_escape $_' \
-        | sort --random-sort \
         | sed -e 's/\(.*\)/https:\/\/www.lofiatc.com\/assets\/music\/\1.mp3/' \
         > $LOFI_MP3
     echo "DONE" >&2
