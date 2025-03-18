@@ -1,7 +1,10 @@
 #!/bin/bash
+set -m
 
 LOFI_PLAYLIST="lofimp3.m3u" # Options: 'lofiyt.m3u', 'lofimp3.m3u'
 ATC_PLAYLIST="icao.txt"     # Options: 'broadcastify.txt', 'icao.txt'
+LOFI_VOLUME=100
+ATC_VOLUME=80
 
 function updateinfo()
 # hacky but it seems to work
@@ -89,14 +92,24 @@ ATC_FEED=$(echo $ATC_ENTRY | cut -d ";" -f3)
 echo "ATC: $ATC_CODE"
 echo "  $ATC_NAME"
 echo "  $ATC_FEED"
+echo "  Volume: $ATC_VOLUME"
 
-# Trap ATC Feed so MPV closes when script ends
-trap "kill $MPV_PID;" QUIT
-mpv --no-video --loop "$ATC_FEED" &>/dev/null &
-MPV_PID=$!
+mpv --no-video --loop --volume="$ATC_VOLUME" "$ATC_FEED" &
+MPV_ATC_PID=$!
 
 # Play LOFI
 echo "Lofi: $LOFI_PLAYLIST" >&2
-echo -e "\nUse / and * to adjust lofi volume\n" >&2
-mpv --no-ytdl --no-video --shuffle --loop-playlist $LOFI_PLAYLIST
+echo "  Volume: $LOFI_VOLUME"
 
+echo -e "\nUse / and * to adjust lofi volume" >&2
+echo -e "To also adjust ATC volume, start with \`bash --init-file lofiatc.sh\` and use bash's job control\n" >&2
+mpv --no-video --shuffle --volume="$LOFI_VOLUME" --loop-playlist "$LOFI_PLAYLIST" &
+MPV_LOFI_PID=$!
+
+# Ensure that both MPV instances are closed when the script terminates
+trap "ps -p $MPV_LOFI_PID >/dev/null && kill $MPV_LOFI_PID; \
+      ps -p $MPV_ATC_PID >/dev/null && kill $MPV_ATC_PID; \
+      wait $MPV_ATC_PID;" EXIT
+
+# Bring LOFI job to foreground
+fg
