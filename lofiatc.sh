@@ -1,9 +1,7 @@
 #!/bin/bash
 
-ICAO_CODES=icao.txt
-BROADCASTIFY=broadcastify.txt
-LOFI_YT=lofiyt.m3u
-LOFI_MP3=lofimp3.m3u
+LOFI_PLAYLIST="lofimp3.m3u" # Options: 'lofiyt.m3u', 'lofimp3.m3u'
+ATC_PLAYLIST="icao.txt"     # Options: 'broadcastify.txt', 'icao.txt'
 
 function updateinfo()
 # hacky but it seems to work
@@ -11,6 +9,9 @@ function updateinfo()
 {
     echo "Updating stream information..." >&2
 
+    LOFI_YT="lofiyt.m3u"
+    LOFI_MP3="lofimp3.m3u"
+    BROADCASTIFY="broadcastify.txt"
     CHUNK_URL="https://www.lofiatc.com$(curl https://www.lofiatc.com/ 2>/dev/null | grep -o '/static/js/main.[^.]\+.chunk.js')"
 
     # get youtube links for lofi songs
@@ -80,21 +81,22 @@ function updateinfo()
 
 [[ "${1:-}" == "update" ]] && updateinfo
 
-# play random stream
-STREAM_FILE=$ICAO_CODES
+ATC_ENTRY=$(sort --random-sort $ATC_PLAYLIST | head -1)
+ATC_CODE=$(echo $ATC_ENTRY | cut -d ";" -f1)
+ATC_NAME=$(echo $ATC_ENTRY | cut -d ";" -f2)
+ATC_FEED=$(echo $ATC_ENTRY | cut -d ";" -f3)
 
-# uncomment if broadcastify streams shall be used
-# STREAM_FILE=$BROADCASTIFY
+echo "ATC: $ATC_CODE"
+echo "  $ATC_NAME"
+echo "  $ATC_FEED"
 
-STREAM_ENTRY=$(sort --random-sort $STREAM_FILE | head -1)
-STREAM_CODE=$(echo $STREAM_ENTRY | cut -d ";" -f1)
-STREAM_NAME=$(echo $STREAM_ENTRY | cut -d ";" -f2)
-STREAM_FEED=$(echo $STREAM_ENTRY | cut -d ";" -f3)
-echo "Playing: $STREAM_CODE - $STREAM_NAME" >&2
-echo $STREAM_FEED >&2
-mpv --no-video --loop "$STREAM_FEED" &>/dev/null &
+# Trap ATC Feed so MPV closes when script ends
+trap "kill $MPV_PID;" QUIT
+mpv --no-video --loop "$ATC_FEED" &>/dev/null &
+MPV_PID=$!
 
-# lofi playlist
-# in case yt videos shall be used for playback:
-# https://github.com/yt-dlp/yt-dlp/issues/6496#issuecomment-1463202877
-mpv --no-ytdl --no-video --shuffle --loop-playlist $LOFI_YT
+# Play LOFI
+echo "Lofi: $LOFI_PLAYLIST" >&2
+echo -e "\nUse / and * to adjust lofi volume\n" >&2
+mpv --no-ytdl --no-video --shuffle --loop-playlist $LOFI_PLAYLIST
+
