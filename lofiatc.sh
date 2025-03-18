@@ -2,8 +2,6 @@
 
 LOFI_PLAYLIST="lofimp3.m3u" # Options: 'lofiyt.m3u', 'lofimp3.m3u'
 ATC_PLAYLIST="icao.txt"     # Options: 'broadcastify.txt', 'icao.txt'
-LOFI_VOLUME=115
-ATC_VOLUME=100
 
 function updateinfo()
 # hacky but it seems to work
@@ -91,14 +89,14 @@ ATC_FEED=$(echo $ATC_ENTRY | cut -d ";" -f3)
 echo "ATC: $ATC_CODE"
 echo "  $ATC_NAME"
 echo "  $ATC_FEED"
-echo "  Volume: $ATC_VOLUME"
 
 # Trap ATC Feed so MPV closes when script ends
 trap "kill $MPV_PID;" QUIT
-mpv --no-video --loop --volume="$ATC_VOLUME" "$ATC_FEED" &>/dev/null &
+mpv --no-video --loop "$ATC_FEED" &>/dev/null &
 MPV_PID=$!
 
 # Play LOFI
 echo "Lofi: $LOFI_PLAYLIST" >&2
-echo "  Volume: $LOFI_VOLUME" >&2
-mpv --no-ytdl --no-video --shuffle --volume=$LOFI_VOLUME --loop-playlist $LOFI_PLAYLIST &> /dev/null
+echo -e "\nUse / and * to adjust lofi volume\n" >&2
+mpv --no-ytdl --no-video --shuffle --loop-playlist $LOFI_PLAYLIST
+
